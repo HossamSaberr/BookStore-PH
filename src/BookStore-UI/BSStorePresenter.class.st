@@ -37,10 +37,8 @@ BSStorePresenter >> actionAddBook [
 BSStorePresenter >> actionRemoveBook [
 	| selectedBook |
 	
-	"1. Get the book the user clicked on"
 	selectedBook := bookList selection selectedItem.
 	
-	"2. If they actually selected something, remove it and update!"
 	selectedBook ifNotNil: [ 
 		inventory removeBook: selectedBook.
 		self updateUI.
@@ -101,9 +99,7 @@ BSStorePresenter >> initializeWindow: aWindowPresenter [
 
 { #category : 'initialization' }
 BSStorePresenter >> updateUI [
-	"Refresh the list of books"
 	bookList items: inventory books.
 	
-	"Update the total price label dynamically"
 	totalLabel label: 'Total Value: $', inventory totalPrice asString.
 ]
