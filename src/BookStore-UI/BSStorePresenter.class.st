@@ -19,18 +19,25 @@ Class {
 BSStorePresenter >> actionAddBook [
 	| newBook |
 	
+	(titleInput text isEmpty or: [ authorInput text isEmpty or: [ priceInput text isEmpty ] ])
+		ifTrue: [ 
+			UIManager default alert: 'Please fill in all fields before adding a book!'.
+			^ self 
+		].
+	
 	newBook := BSBook new 
 		title: titleInput text;
 		author: authorInput text;
 		price: priceInput text asInteger.
 		
 	inventory addBook: newBook.
-	
 	self updateUI.
 	
 	titleInput text: ''.
 	authorInput text: ''.
 	priceInput text: ''.
+	
+	UIManager default inform: 'Book successfully added to inventory!'.
 ]
 
 { #category : 'initialization' }
