@@ -18,6 +18,11 @@ BSInventory >> books [
 	^ books
 ]
 
+{ #category : 'testing' }
+BSInventory >> includesTitle: aString [
+	^ books anySatisfy: [ :eachBook | eachBook title asLowercase = aString asLowercase ]
+]
+
 { #category : 'initialization' }
 BSInventory >> initialize [
 	super initialize.
