@@ -9,8 +9,9 @@ Class {
 		'priceInput',
 		'addButton',
 		'removeButton',
-		'totalLabel',
-		'buyButton'
+		'buyButton',
+		'addCopyButton',
+		'removeCopyButton'
 	],
 	#category : 'BookStore-UI',
 	#package : 'BookStore-UI'
@@ -76,29 +77,67 @@ BSStorePresenter >> connectPresenters [
     book title, ' by ', book author, ' - $', book price asString, ' (Stock: ', book quantity asString, ')' ].
 	
 	addButton action: [ self actionAddBook ].
+	addCopyButton action: [ 
+    bookList selectedItem ifNotNil: [ :selectedBook |
+        | input amount |
+        input := UIManager default 
+            request: 'How many copies of "', selectedBook title, '" would you like to add?' 
+            initialAnswer: '1'.
+        
+        input ifNotNil: [ 
+            amount := input asInteger.
+            
+            amount ifNotNil: [ 
+                selectedBook quantity: (selectedBook quantity + amount).
+                self updateUI 
+            ] 
+        ]
+    ] 
+].
+	removeCopyButton action: [ 
+    bookList selectedItem ifNotNil: [ :selectedBook |
+        | input amount |
+        input := UIManager default 
+            request: 'How many copies of "', selectedBook title, '" would you like to remove?' 
+            initialAnswer: '1'.
+        
+        input ifNotNil: [ 
+            amount := input asInteger.
+            amount ifNotNil: [ 
+                amount <= selectedBook quantity 
+                    ifTrue: [ 
+                        selectedBook quantity: (selectedBook quantity - amount).
+                        self updateUI ]
+                    ifFalse: [ 
+                        UIManager default alert: 'Error: Cannot remove more copies than currently in stock!' ]
+            ] 
+        ]
+    ] 
+].
 	removeButton action: [ self actionRemoveBook ].
 	buyButton action: [ self actionBuyBook ].
 ]
 
 { #category : 'layout' }
 BSStorePresenter >> defaultLayout [
-	^ SpBoxLayout newTopToBottom
-		spacing: 5;
-		add: bookList;
-		add: (SpBoxLayout newLeftToRight
-				spacing: 5;
-				add: titleInput;
-				add: authorInput;
-				add: priceInput;
-				yourself) expand: false;
-		add: (SpBoxLayout newLeftToRight
-				spacing: 5;
-				add: addButton;
-				add: removeButton;
-				add: buyButton; 
-				yourself) expand: false;
-		add: totalLabel expand: false;
-		yourself
+    ^ SpBoxLayout newTopToBottom
+        spacing: 5;
+        add: bookList;
+        add: (SpBoxLayout newLeftToRight
+            spacing: 5;
+            add: titleInput;
+            add: authorInput;
+            add: priceInput;
+            yourself) expand: false;
+        add: (SpBoxLayout newLeftToRight
+            spacing: 5;
+            add: addButton;
+            add: addCopyButton;
+				add: removeCopyButton; 
+            add: removeButton;
+            add: buyButton;
+            yourself) expand: false;
+        yourself
 ]
 
 { #category : 'actions' }
@@ -108,6 +147,8 @@ BSStorePresenter >> disableManagement [
 	titleInput hide.
 	authorInput hide.
 	priceInput hide.
+	addCopyButton hide.
+	removeCopyButton hide.
 	buyButton show. 
 	self updateUI.
 ]
@@ -119,14 +160,16 @@ BSStorePresenter >> enableManagement [
 	titleInput show.
 	authorInput show.
 	priceInput show.
-	
+	addCopyButton show.
+	removeCopyButton show.
 	buyButton hide.
 ]
 
 { #category : 'initialization' }
 BSStorePresenter >> initialize [
-	super initialize.
-	inventory := Smalltalk at: #SharedInventory.
+    super initialize.
+    inventory := Smalltalk at: #SharedInventory.
+    self updateUI. 
 ]
 
 { #category : 'initialization' }
@@ -141,7 +184,10 @@ BSStorePresenter >> initializePresenters [
 	buyButton := self newButton label: 'Buy Selected Book'.
 	
 	removeButton := self newButton label: 'Remove Selected'.
-	totalLabel := self newLabel label: 'Total Value: $0'.
+	addCopyButton := self newButton.
+   addCopyButton label: 'Add Copies...'.
+	removeCopyButton := self newButton.
+	removeCopyButton label: 'Remove Copies...'.
 	buyButton := self newButton 
 		label: 'Buy Selected Book';
 		icon: (self iconNamed: #cart).
@@ -159,5 +205,7 @@ BSStorePresenter >> initializeWindow: aWindowPresenter [
 BSStorePresenter >> updateUI [
 	bookList items: inventory books.
 	
-	totalLabel label: 'Total Value: $', inventory totalPrice asString.
+	inventory ifNotNil: [ 
+    bookList items: inventory books.
+].
 ]
