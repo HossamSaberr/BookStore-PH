@@ -29,6 +29,20 @@ BSInventory >> initialize [
 	books := OrderedCollection new.
 ]
 
+{ #category : 'as yet unclassified' }
+BSInventory >> loadFromFile [
+    | fileReference loadedBooks |
+    fileReference := 'bookstore.ston' asFileReference.
+    
+    fileReference exists ifTrue: [ 
+        fileReference readStreamDo: [ :stream | 
+            loadedBooks := STON fromStream: stream ].
+        books := loadedBooks.
+    ] ifFalse: [ 
+        books := OrderedCollection new.
+    ]
+]
+
 { #category : 'removing' }
 BSInventory >> reduceStock: aBook [
 	aBook quantity: (aBook quantity - 1).
@@ -41,6 +55,15 @@ BSInventory >> reduceStock: aBook [
 { #category : 'removing' }
 BSInventory >> removeBook: aBook [
 	books remove: aBook ifAbsent: [ ].
+]
+
+{ #category : 'as yet unclassified' }
+BSInventory >> saveToFile [
+    | fileReference |
+    fileReference := 'bookstore.ston' asFileReference.
+    
+    fileReference writeStreamDo: [ :stream | 
+        STON put: books onStreamPretty: stream ]
 ]
 
 { #category : 'accessing' }

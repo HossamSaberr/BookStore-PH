@@ -80,7 +80,8 @@ BSStorePresenter >> connectPresenters [
 	bookList display: [ :book | 
     book title, ' by ', book author, ' - $', book price asString, ' (Stock: ', book quantity asString, ')' ].
 	
-	addButton action: [ self actionAddBook ].
+	addButton action: [ self actionAddBook .
+		inventory saveToFile].
 	addCopyButton action: [ 
     bookList selectedItem ifNotNil: [ :selectedBook |
         | input amount |
@@ -141,6 +142,8 @@ checkoutButton action: [
         canProcess ifTrue: [ 
             cart do: [ :item | item book quantity: (item book quantity - item quantity) ].
             
+				inventory saveToFile.
+	
             cart removeAll.
             self updateUI.  
             self updateCartUI. 
@@ -215,6 +218,7 @@ BSStorePresenter >> enableManagement [
 BSStorePresenter >> initialize [
     super initialize.
     inventory := Smalltalk at: #SharedInventory.
+	 inventory loadFromFile.
 	 cart := OrderedCollection new.
     self updateUI. 
 ]
