@@ -11,7 +11,11 @@ Class {
 		'removeButton',
 		'buyButton',
 		'addCopyButton',
-		'removeCopyButton'
+		'removeCopyButton',
+		'cart',
+		'cartList',
+		'cartTotalLabel',
+		'checkoutButton'
 	],
 	#category : 'BookStore-UI',
 	#package : 'BookStore-UI'
@@ -115,14 +119,56 @@ BSStorePresenter >> connectPresenters [
     ] 
 ].
 	removeButton action: [ self actionRemoveBook ].
-	buyButton action: [ self actionBuyBook ].
+	buyButton label: 'Add to Cart'.
+		buyButton action: [ 
+    		bookList selectedItem ifNotNil: [ :selectedBook |
+        
+        	| cartItem |
+        	cartItem := cart detect: [ :item | item book = selectedBook ] ifNone: [ nil ].
+        
+        	cartItem 
+            ifNotNil: [ cartItem quantity: cartItem quantity + 1 ]
+            ifNil: [ cart add: (BSCartItem new book: selectedBook; quantity: 1) ].
+            
+        self updateCartUI.
+    ]
+].
+checkoutButton action: [ 
+    cart ifNotEmpty: [ 
+        | canProcess |
+        canProcess := cart allSatisfy: [ :item | item book quantity >= item quantity ].
+        
+        canProcess ifTrue: [ 
+            cart do: [ :item | item book quantity: (item book quantity - item quantity) ].
+            
+            cart removeAll.
+            self updateUI.  
+            self updateCartUI. 
+            UIManager default inform: 'Purchase successful! Thank you for shopping.'
+        ] ifFalse: [ 
+            UIManager default alert: 'Error: One or more items in your cart exceed available stock!'
+        ]
+    ] ifEmpty: [ 
+        UIManager default alert: 'Your cart is empty!'
+    ]
+].
 ]
 
 { #category : 'layout' }
 BSStorePresenter >> defaultLayout [
     ^ SpBoxLayout newTopToBottom
         spacing: 5;
-        add: bookList;
+        add: (SpPanedLayout newLeftToRight
+            positionOfSlider: 60 percent;
+            add: bookList;   
+            add: (SpBoxLayout newTopToBottom 
+                spacing: 5;
+                add: 'Your Cart' expand: false;
+                add: cartList; 
+                add: cartTotalLabel expand: false;
+					 add: checkoutButton expand: false;
+                yourself);    
+            yourself);
         add: (SpBoxLayout newLeftToRight
             spacing: 5;
             add: titleInput;
@@ -133,7 +179,7 @@ BSStorePresenter >> defaultLayout [
             spacing: 5;
             add: addButton;
             add: addCopyButton;
-				add: removeCopyButton; 
+            add: removeCopyButton;
             add: removeButton;
             add: buyButton;
             yourself) expand: false;
@@ -169,6 +215,7 @@ BSStorePresenter >> enableManagement [
 BSStorePresenter >> initialize [
     super initialize.
     inventory := Smalltalk at: #SharedInventory.
+	 cart := OrderedCollection new.
     self updateUI. 
 ]
 
@@ -192,6 +239,16 @@ BSStorePresenter >> initializePresenters [
 		label: 'Buy Selected Book';
 		icon: (self iconNamed: #cart).
 	buyButton hide.
+	cartList := self newTable.
+	cartList 
+    	addColumn: (SpStringTableColumn title: 'Book' evaluated: [ :item | item book title ]);
+    	addColumn: (SpStringTableColumn title: 'Qty' evaluated: [ :item | item quantity asString ]);
+    	addColumn: (SpStringTableColumn title: 'Subtotal' evaluated: [ :item | item totalPrice asString ]).
+
+	cartTotalLabel := self newLabel.
+	cartTotalLabel label: 'Total: $0'.
+	checkoutButton := self newButton.
+	checkoutButton label: 'Checkout'.
 ]
 
 { #category : 'initialization' }
@@ -199,6 +256,15 @@ BSStorePresenter >> initializeWindow: aWindowPresenter [
 	aWindowPresenter
 		title: 'My Pharo BookStore';
 		initialExtent: 600@400.
+]
+
+{ #category : 'as yet unclassified' }
+BSStorePresenter >> updateCartUI [
+    | total |
+    cartList items: cart.
+    
+    total := cart inject: 0 into: [ :sum :item | sum + item totalPrice ].
+    cartTotalLabel label: 'Total: $', total asString.
 ]
 
 { #category : 'initialization' }
