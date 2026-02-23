@@ -4,7 +4,8 @@ Class {
 	#instVars : [
 		'title',
 		'author',
-		'price'
+		'price',
+		'quantity'
 	],
 	#category : 'BookStore-Core',
 	#package : 'BookStore-Core'
@@ -23,6 +24,12 @@ BSBook >> author: anObject [
 ]
 
 { #category : 'accessing' }
+BSBook >> initialize [
+	super initialize.
+	quantity := 1. 
+]
+
+{ #category : 'accessing' }
 BSBook >> price [
 
 	^ price
@@ -32,6 +39,16 @@ BSBook >> price [
 BSBook >> price: anObject [
 
 	price := anObject
+]
+
+{ #category : 'accessing' }
+BSBook >> quantity [
+	^ quantity
+]
+
+{ #category : 'accessing' }
+BSBook >> quantity: aNumber [
+	quantity := aNumber
 ]
 
 { #category : 'accessing' }

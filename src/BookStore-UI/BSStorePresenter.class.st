@@ -9,7 +9,8 @@ Class {
 		'priceInput',
 		'addButton',
 		'removeButton',
-		'totalLabel'
+		'totalLabel',
+		'buyButton'
 	],
 	#category : 'BookStore-UI',
 	#package : 'BookStore-UI'
@@ -30,9 +31,10 @@ BSStorePresenter >> actionAddBook [
 			^ self ].
 	
 	newBook := BSBook new 
-		title: titleInput text;
-		author: authorInput text;
-		price: priceInput text asInteger.
+        title: titleInput text;
+        author: authorInput text;
+        price: priceInput text asInteger;
+        quantity: 5.
 		
 	inventory addBook: newBook.
 	self updateUI.
@@ -40,6 +42,20 @@ BSStorePresenter >> actionAddBook [
 	titleInput text: ''.
 	authorInput text: ''.
 	priceInput text: ''.
+]
+
+{ #category : 'actions' }
+BSStorePresenter >> actionBuyBook [
+	| selectedBook |
+	selectedBook := bookList selection selectedItem.
+	
+	selectedBook ifNotNil: [ 
+		inventory reduceStock: selectedBook.
+		self updateUI.
+		UIManager default inform: 'Purchase successful!' 
+	] ifNil: [ 
+		UIManager default alert: 'Please select a book first!' 
+	].
 ]
 
 { #category : 'initialization' }
@@ -56,33 +72,61 @@ BSStorePresenter >> actionRemoveBook [
 
 { #category : 'initialization' }
 BSStorePresenter >> connectPresenters [
-	bookList display: [ :book | book title , ' by ' , book author , ' ($' , book price asString , ')' ].
+	bookList display: [ :book | 
+    book title, ' by ', book author, ' - $', book price asString, ' (Stock: ', book quantity asString, ')' ].
 	
 	addButton action: [ self actionAddBook ].
 	removeButton action: [ self actionRemoveBook ].
+	buyButton action: [ self actionBuyBook ].
 ]
 
 { #category : 'layout' }
 BSStorePresenter >> defaultLayout [
 	^ SpBoxLayout newTopToBottom
+		spacing: 5;
 		add: bookList;
 		add: (SpBoxLayout newLeftToRight
-			add: titleInput;
-			add: authorInput;
-			add: priceInput;
-			add: addButton expand: false;
-			yourself) expand: false;
+				spacing: 5;
+				add: titleInput;
+				add: authorInput;
+				add: priceInput;
+				yourself) expand: false;
 		add: (SpBoxLayout newLeftToRight
-			add: removeButton expand: false;
-			add: totalLabel;
-			yourself) expand: false;
+				spacing: 5;
+				add: addButton;
+				add: removeButton;
+				add: buyButton; 
+				yourself) expand: false;
+		add: totalLabel expand: false;
 		yourself
+]
+
+{ #category : 'actions' }
+BSStorePresenter >> disableManagement [
+	addButton hide.
+	removeButton hide.
+	titleInput hide.
+	authorInput hide.
+	priceInput hide.
+	buyButton show. 
+	self updateUI.
+]
+
+{ #category : 'actions' }
+BSStorePresenter >> enableManagement [
+	addButton show.
+	removeButton show.
+	titleInput show.
+	authorInput show.
+	priceInput show.
+	
+	buyButton hide.
 ]
 
 { #category : 'initialization' }
 BSStorePresenter >> initialize [
 	super initialize.
-	inventory := BSInventory new.
+	inventory := Smalltalk at: #SharedInventory.
 ]
 
 { #category : 'initialization' }
@@ -94,9 +138,14 @@ BSStorePresenter >> initializePresenters [
 	priceInput := self newTextInput placeholder: 'Price'.
 	
 	addButton := self newButton label: 'Add Book'.
+	buyButton := self newButton label: 'Buy Selected Book'.
 	
 	removeButton := self newButton label: 'Remove Selected'.
 	totalLabel := self newLabel label: 'Total Value: $0'.
+	buyButton := self newButton 
+		label: 'Buy Selected Book';
+		icon: (self iconNamed: #cart).
+	buyButton hide.
 ]
 
 { #category : 'initialization' }

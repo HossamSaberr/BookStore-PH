@@ -30,6 +30,15 @@ BSInventory >> initialize [
 ]
 
 { #category : 'removing' }
+BSInventory >> reduceStock: aBook [
+	aBook quantity: (aBook quantity - 1).
+	
+	(aBook quantity <= 0) ifTrue: [ 
+		self removeBook: aBook.
+	]
+]
+
+{ #category : 'removing' }
 BSInventory >> removeBook: aBook [
 	books remove: aBook ifAbsent: [ ].
 ]
