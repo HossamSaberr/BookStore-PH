@@ -2,6 +2,10 @@
 
 A desktop application developed in Pharo. This project serves as a comprehensive example of object-oriented design, role-based access control, and data serialization in a Pharo environment.
 
+https://github.com/user-attachments/assets/bbdee804-1c7d-4b1f-8f6a-9854e63a6fd4
+
+---
+
 ## Key Functionalities
 
 ### Authentication and Authorization
@@ -29,17 +33,20 @@ To ensure data is not lost between sessions, the application implements a persis
 
 ## Technical Specifications
 
-- Development Environment: Pharo 13
-- User Interface: Spec2 Framework
-- Data Format: STON (Local File System)
-- Architecture: Model-Presenter Pattern
+- **Development Environment:** Pharo 13
+- **User Interface:** Spec2 Framework
+- **Data Format:** STON (Local File System)
+- **Architecture:** Model-Presenter Pattern
+- **Clean Code:** Heavy use of Smalltalk idioms, including cascaded messages and collection block closures.
 
 ## Installation and Usage
 
 1. Import the package into your Pharo image using the Iceberg tool.
 2. Open a Playground and execute the following:
 
-   BSLoginPresenter new open.
+   ```smalltalk
+    BSLoginPresenter new open.
+    ```
 
 3. Default Credentials:
    - Administrator: admin / admin123
