@@ -14,9 +14,11 @@ Class {
 BSLoginPresenter >> connectPresenters [
     loginButton action: [ 
         (usernameInput text = 'admin' and: [ passwordInput text = 'admin123' ])
-            ifTrue: [ 
-                self delete.
-                BSStorePresenter new open ]
+            ifTrue: [
+    				self delete.
+   				 	BSStorePresenter new 
+        			enableManagement;
+        			open ]
             ifFalse: [ 
                 (usernameInput text = 'guest' and: [ passwordInput text = 'guest123' ])
                     ifTrue: [ 

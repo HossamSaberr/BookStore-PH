@@ -2,6 +2,7 @@ Class {
 	#name : 'BSStorePresenter',
 	#superclass : 'SpPresenter',
 	#instVars : [
+		'isAdmin',
 		'inventory',
 		'bookList',
 		'titleInput',
@@ -13,6 +14,7 @@ Class {
 		'addCopyButton',
 		'removeCopyButton',
 		'cart',
+		'cartTitleLabel',
 		'cartList',
 		'cartTotalLabel',
 		'checkoutButton'
@@ -71,7 +73,8 @@ BSStorePresenter >> actionRemoveBook [
 	
 	selectedBook ifNotNil: [ 
 		inventory removeBook: selectedBook.
-		self updateUI.
+		inventory saveToFile. 
+      self updateUI.
 	].
 ]
 
@@ -159,59 +162,46 @@ checkoutButton action: [
 
 { #category : 'layout' }
 BSStorePresenter >> defaultLayout [
-    ^ SpBoxLayout newTopToBottom
-        spacing: 5;
-        add: (SpPanedLayout newLeftToRight
-            positionOfSlider: 60 percent;
-            add: bookList;   
-            add: (SpBoxLayout newTopToBottom 
+    isAdmin ifTrue: [ 
+        ^ SpBoxLayout newTopToBottom
+            spacing: 5;
+            add: bookList;
+            add: (SpBoxLayout newLeftToRight 
                 spacing: 5;
-                add: 'Your Cart' expand: false;
-                add: cartList; 
-                add: cartTotalLabel expand: false;
-					 add: checkoutButton expand: false;
-                yourself);    
+                add: titleInput; add: authorInput; add: priceInput; yourself) expand: false;
+            add: (SpBoxLayout newLeftToRight 
+                spacing: 5;
+                add: addButton; add: addCopyButton; add: removeCopyButton; add: removeButton; yourself) expand: false;
+            yourself.
+    ].
+
+    ^ SpPanedLayout newHorizontal
+        positionOfSlider: 0.6;
+        add: (SpBoxLayout newTopToBottom
+            spacing: 5;
+            add: bookList;
+            add: buyButton expand: false;
             yourself);
-        add: (SpBoxLayout newLeftToRight
+        add: (SpBoxLayout newTopToBottom
             spacing: 5;
-            add: titleInput;
-            add: authorInput;
-            add: priceInput;
-            yourself) expand: false;
-        add: (SpBoxLayout newLeftToRight
-            spacing: 5;
-            add: addButton;
-            add: addCopyButton;
-            add: removeCopyButton;
-            add: removeButton;
-            add: buyButton;
-            yourself) expand: false;
-        yourself
+            add: cartTitleLabel expand: false; 
+            add: cartList;
+            add: cartTotalLabel expand: false; 
+            add: checkoutButton expand: false;
+            yourself);
+        yourself.
 ]
 
 { #category : 'actions' }
 BSStorePresenter >> disableManagement [
-	addButton hide.
-	removeButton hide.
-	titleInput hide.
-	authorInput hide.
-	priceInput hide.
-	addCopyButton hide.
-	removeCopyButton hide.
-	buyButton show. 
-	self updateUI.
+    isAdmin := false.
+    self layout: self defaultLayout.
 ]
 
 { #category : 'actions' }
 BSStorePresenter >> enableManagement [
-	addButton show.
-	removeButton show.
-	titleInput show.
-	authorInput show.
-	priceInput show.
-	addCopyButton show.
-	removeCopyButton show.
-	buyButton hide.
+    isAdmin := true.
+    self layout: self defaultLayout.
 ]
 
 { #category : 'initialization' }
@@ -226,6 +216,7 @@ BSStorePresenter >> initialize [
 { #category : 'initialization' }
 BSStorePresenter >> initializePresenters [
 	bookList := self newList.
+	isAdmin := false.
 	
 	titleInput := self newTextInput placeholder: 'Title'.
 	authorInput := self newTextInput placeholder: 'Author'.
@@ -242,13 +233,14 @@ BSStorePresenter >> initializePresenters [
 	buyButton := self newButton 
 		label: 'Buy Selected Book';
 		icon: (self iconNamed: #cart).
-	buyButton hide.
 	cartList := self newTable.
 	cartList 
     	addColumn: (SpStringTableColumn title: 'Book' evaluated: [ :item | item book title ]);
     	addColumn: (SpStringTableColumn title: 'Qty' evaluated: [ :item | item quantity asString ]);
     	addColumn: (SpStringTableColumn title: 'Subtotal' evaluated: [ :item | item totalPrice asString ]).
 
+	cartTitleLabel := self newLabel.
+	cartTitleLabel label: 'Your Cart'.
 	cartTotalLabel := self newLabel.
 	cartTotalLabel label: 'Total: $0'.
 	checkoutButton := self newButton.
